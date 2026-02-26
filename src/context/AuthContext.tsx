@@ -1,120 +1,167 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  tenantId: string;
-}
+// src/contexts/AuthContext.tsx
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import type { User, Brand, ActiveBrandResponse, ApiError } from '../types';
+import { authService } from '../services/auth.service';
+import { brandService } from '../services/brand.service';
+import api from '../services/api';
 
 interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
+    user: User | null;
+    brand: ActiveBrandResponse | null;
+    isLoading: boolean;
+    error: string | null;
+    login: (email: string, password: string) => Promise<void>;
+    register: (data: any) => Promise<void>;
+    logout: () => void;
+    refreshBrand: () => Promise<void>;
+    switchBrand: (brandId: string) => Promise<void>;
+    clearError: () => void;
 }
-
-interface RegisterData {
-  email: string;
-  password: string;
-  tenantName: string;
-  tenantSlug: string;
-}
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [brand, setBrand] = useState<ActiveBrandResponse | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+    useEffect(() => {
+        checkAuth();
+    }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/signin`, {
-        email,
-        password
-      });
+    const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setIsLoading(false);
+            return;
+        }
 
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setToken(token);
-      setUser(user);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Login failed');
-    }
-  };
+        try {
+            const [authData, brandData] = await Promise.all([
+                authService.getCurrentUser(),
+                brandService.getActiveBrand().catch(() => null)
+            ]);
 
-  const register = async (data: RegisterData) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/signup`, {
-        email: data.email,
-        password: data.password,
-        tenantName: data.tenantName,
-        tenantSlug: data.tenantSlug
-      });
+            setUser(authData.user);
+            if (brandData) {
+                setBrand(brandData);
+            }
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            localStorage.removeItem('token');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setToken(token);
-      setUser(user);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Registration failed');
-    }
-  };
+    const login = async (email: string, password: string) => {
+        try {
+            setError(null);
+            setIsLoading(true);
+            const data = await authService.login({ email, password });
+            setUser(data.user);
+            if (data.brand) {
+                const brandData = await brandService.getActiveBrand();
+                setBrand(brandData);
+            }
+        } catch (err) {
+            const apiError = err as ApiError;
+            setError(apiError.error || 'Login failed');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-  };
+    const register = async (registerData: any) => {
+        try {
+            setError(null);
+            setIsLoading(true);
+            const data = await authService.register(registerData);
+            setUser(data.user);
+            if (data.brand) {
+                const brandData = await brandService.getActiveBrand();
+                setBrand(brandData);
+            }
+        } catch (err) {
+            const apiError = err as ApiError;
+            setError(apiError.error || 'Registration failed');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        login,
-        register,
-        logout,
-        isAuthenticated: !!token
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+    // src/contexts/AuthContext.tsx - Fix the switchBrand function
+
+    const switchBrand = async (brandId: string) => {
+        try {
+            setIsLoading(true);
+            console.log("🔄 Switching to brand:", brandId); // Add debug log
+
+            // FIXED: Use backticks instead of single quotes
+            const response = await api.post(`/brand/user/switch/${brandId}`);
+
+            console.log("✅ Switch response:", response.data);
+
+            // Fetch the new active brand data
+            const brandData = await brandService.getActiveBrand();
+            setBrand(brandData);
+
+            // Trigger a page refresh by reloading the window
+            window.location.reload();
+        } catch (err) {
+            console.error("❌ Switch brand error:", err);
+            const apiError = err as ApiError;
+            setError(apiError.error || 'Failed to switch brand');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const refreshBrand = async () => {
+        try {
+            const brandData = await brandService.getActiveBrand();
+            setBrand(brandData);
+        } catch (error) {
+            console.error('Failed to refresh brand:', error);
+        }
+    };
+
+    const logout = () => {
+        authService.logout();
+        setUser(null);
+        setBrand(null);
+        setError(null);
+        window.location.href = '/login';
+    };
+
+    const clearError = () => setError(null);
+
+    return (
+        <AuthContext.Provider value={{
+            user,
+            brand,
+            isLoading,
+            error,
+            login,
+            register,
+            logout,
+            refreshBrand,
+            switchBrand,
+            clearError
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };

@@ -1,103 +1,113 @@
 // src/store/brandStore.ts
 import { create } from "zustand";
+import { devtools } from 'zustand/middleware';
 import deepMerge from "../utils/deepMerge";
 import { saveBrand as saveBrandApi } from "../api/brand";
 
 interface BrandState {
-  brand: any; // The full API response { brand: {...}, config: {...} }
-  draft: any; // The editable config (draft.brand will contain the config)
+  brand: any;
+  draft: any;
   isDirty: boolean;
   loading: boolean;
+  activeBrandId: string | null;
 
-  /** Load brand from backend */
   setBrand: (response: { brand: any; config: any }) => void;
-
-  /** Patch-based updates (visual editors ONLY) */
   updateDraft: (path: (string | number)[], value: any) => void;
-
-  /** Replace brand authoritatively (JSON editor ONLY) */
   replaceDraftConfig: (config: any) => void;
-
-  /** Persist draft config to backend */
   saveBrand: () => Promise<void>;
+  clearBrand: () => void;
+  setActiveBrandId: (id: string) => void;
 }
 
-export const useBrandStore = create<BrandState>((set, get) => ({
-  brand: null,
-  draft: null,
-  isDirty: false,
-  loading: false,
-
-  /**
-   * Initialize store from API
-   * The API returns { brand: {...}, config: {...} }
-   * We store the full response in 'brand' and the config in 'draft'
-   */
-  setBrand: (response) => {
-    console.log("Setting brand from response:", response);
-    set({
-      brand: response,
-      draft: {
-        brand: structuredClone(response.config) // This makes draft.brand point to the config
-      },
+export const useBrandStore = create<BrandState>()(
+  devtools(
+    (set, get) => ({
+      brand: null,
+      draft: null,
       isDirty: false,
-      loading: false
-    });
-  },
+      loading: false,
+      activeBrandId: null,
 
-  /**
-   * PATCH semantics
-   * Used by visual editors ONLY
-   * Updates the config at draft.brand
-   */
-  updateDraft: (path, value) =>
-    set((state) => ({
-      draft: deepMerge(state.draft, path, value),
-      isDirty: true
-    })),
-
-  /**
-   * AUTHORITATIVE replace
-   * Used by JSON editor ONLY
-   * Replaces the entire config
-   */
-  replaceDraftConfig: (config) =>
-    set((state) => ({
-      draft: {
-        brand: structuredClone(config)
+      setBrand: (response) => {
+        console.log("📦 Setting brand from response:", response);
+        set({
+          brand: response,
+          draft: {
+            brand: structuredClone(response.config)
+          },
+          activeBrandId: response.brand.id,
+          isDirty: false,
+          loading: false
+        });
       },
-      isDirty: true
-    })),
 
-  /**
-   * Persist draft.brand (the config) to backend
-   */
-  saveBrand: async () => {
-    const { draft, brand } = get();
-    if (!draft?.brand) return;
+      updateDraft: (path, value) =>
+        set((state) => {
+          console.log("📝 Updating draft at path:", path);
+          return {
+            draft: deepMerge(state.draft, path, value),
+            isDirty: true
+          };
+        }),
 
-    set({ loading: true });
+      replaceDraftConfig: (config) => {
+        console.log("🔄 Replacing entire config");
+        set((state) => ({
+          draft: {
+            brand: structuredClone(config)
+          },
+          isDirty: true
+        }));
+      },
 
-    try {
-      // Save the config to backend
-      const saved = await saveBrandApi(draft.brand);
-      
-      // Update store with saved data
-      set({
-        brand: {
-          ...brand,
-          config: saved.config || saved // Handle different response formats
-        },
-        draft: {
-          brand: structuredClone(saved.config || saved)
-        },
-        isDirty: false,
-        loading: false
-      });
-    } catch (error) {
-      console.error("Failed to save brand:", error);
-      set({ loading: false });
-      throw error;
-    }
-  }
-}));
+      saveBrand: async () => {
+        const { draft, brand } = get();
+        if (!draft?.brand) {
+          console.warn("⚠️ No draft brand to save");
+          return;
+        }
+
+        console.log("💾 Saving brand config");
+        set({ loading: true });
+
+        try {
+          const saved = await saveBrandApi(draft.brand);
+
+          set({
+            brand: {
+              ...brand,
+              config: saved.config || saved
+            },
+            draft: {
+              brand: structuredClone(saved.config || saved)
+            },
+            isDirty: false,
+            loading: false
+          });
+
+          console.log("✅ Brand saved successfully");
+        } catch (error) {
+          console.error("❌ Failed to save brand:", error);
+          set({ loading: false });
+          throw error;
+        }
+      },
+
+      clearBrand: () => {
+        console.log("🧹 Clearing brand store");
+        set({
+          brand: null,
+          draft: null,
+          isDirty: false,
+          loading: false,
+          activeBrandId: null
+        });
+      },
+
+      setActiveBrandId: (id) => {
+        set({ activeBrandId: id });
+      }
+    }),
+    { name: 'BrandStore' }
+  )
+);

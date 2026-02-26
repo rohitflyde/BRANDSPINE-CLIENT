@@ -38,7 +38,7 @@ export default function ApiKeyManager({ showSuccess, showError, setIsLoading }: 
     const fetchApiKeys = async () => {
         setIsLoading(true);
         try {
-            const response = await api.get('/api/brand/user/keys');
+            const response = await api.get('/brand/user/keys');
             const data = response.data;
             setKeys(data);
         } catch (error) {
@@ -56,7 +56,7 @@ export default function ApiKeyManager({ showSuccess, showError, setIsLoading }: 
 
         setIsLoading(true);
         try {
-            const response = await fetch('/api/brand/user/keys', {
+            const response = await fetch('/brand/user/keys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

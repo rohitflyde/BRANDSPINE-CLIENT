@@ -16,6 +16,7 @@ import {
   Settings,
   Layout
 } from "lucide-react";
+import BrandSwitcher from "./BrandSwitcher";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -186,8 +187,8 @@ export default function AppShell({
       {/* Sidebar */}
       <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
         {/* Logo Area */}
-        <div className="p-6 border-b border-gray-700">
-          {logo ? (
+        <div className="p-2 border-b border-gray-700">
+          {/* {logo ? (
             <img
               src={'https://ik.imagekit.io/p1zreiw3z/Brandspine/BRANDSPINE.png'}
               alt="Brand Logo"
@@ -203,7 +204,9 @@ export default function AppShell({
                 <p className="text-xs text-gray-400">Multi-tenant CMS</p>
               </div>
             </div>
-          )}
+          )} */}
+
+          <BrandSwitcher/>
         </div>
 
         {/* Navigation */}
@@ -212,11 +215,10 @@ export default function AppShell({
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                activeSection === section.id
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-700"
-              }`}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeSection === section.id
+                ? "bg-blue-600 text-white"
+                : "text-gray-400 hover:text-white hover:bg-gray-700"
+                }`}
             >
               <span className="text-gray-400">{section.icon}</span>
               <span className="text-sm font-medium">{section.label}</span>
@@ -266,10 +268,18 @@ export default function AppShell({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Simple Header with just the section title */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-          <h1 className="text-xl font-semibold">
-            {sections.find(s => s.id === activeSection)?.label || 'Editor'}
-          </h1>
+        <header className="bg-gray-800 border-b border-gray-700 px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold">
+                {sections.find(s => s.id === activeSection)?.label || 'Editor'}
+              </h1>
+              {/* Add Brand Switcher here */}
+              {/* <div className="w-64">
+                <BrandSwitcher />
+              </div> */}
+            </div>
+          </div>
         </header>
 
         {/* Content */}

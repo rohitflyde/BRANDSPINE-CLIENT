@@ -21,7 +21,7 @@ export async function fetchBrand() {
   const headers = getAuthHeaders();
 
   const res = await fetch(
-    `${API_BASE_URL}/api/brand/user/active`, // Using the new JWT endpoint
+    `${API_BASE_URL}/brand/user/active`, // Using the new JWT endpoint
     {
       method: "GET",
       headers
@@ -52,7 +52,7 @@ export async function saveBrand(brandData: any) {
   // Get the active brand first to get its ID
   const activeBrand = await fetchBrand();
   
-  const res = await fetch(`${API_BASE_URL}/api/brand/user/config`, {
+  const res = await fetch(`${API_BASE_URL}/brand/user/config`, {
     method: "PUT",
     headers,
     body: JSON.stringify({ 
@@ -85,7 +85,7 @@ export async function fetchBrandWithApiKey(apiKey: string) {
   }
 
   const res = await fetch(
-    `${API_BASE_URL}/api/brand/export`,
+    `${API_BASE_URL}/brand/export`,
     {
       method: "GET",
       headers: {

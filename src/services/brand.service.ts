@@ -1,5 +1,5 @@
 // src/services/brand.service.ts
-import { api } from './api';
+import api from './api';
 import type { ActiveBrandResponse, BrandConfig, ApiError } from '../types';
 import { AxiosError } from 'axios';
 
