@@ -7,7 +7,7 @@ import { jsonModules, type JsonModule } from "./jsonPaths";
 export default function JsonEditor() {
   const {
     draft,
-    replaceDraftBrand,
+    replaceDraftConfig, // ✅ FIXED: Use correct function name
     saveBrand,
     isDirty,
     loading
@@ -58,18 +58,19 @@ export default function JsonEditor() {
        * If user is NOT in "all",
        * we reconstruct full brand safely
        */
-      let nextBrand = parsed;
+      let nextConfig = parsed;
 
       if (module !== "all") {
         const key = jsonModules[module][0];
 
-        nextBrand = {
+        nextConfig = {
           ...structuredClone(draft.brand),
           [key]: parsed[key]
         };
       }
 
-      replaceDraftBrand(nextBrand);
+      // ✅ FIXED: Call replaceDraftConfig with the new config
+      replaceDraftConfig(nextConfig);
       setError(null);
     } catch (e: any) {
       setError(e.message || "Invalid JSON");
@@ -85,7 +86,7 @@ export default function JsonEditor() {
         <div className="flex gap-3">
           <button
             onClick={applyChanges}
-            className="px-3 py-2 rounded-md text-sm bg-gray-800 text-gray-300"
+            className="px-3 py-2 rounded-md text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors"
           >
             Apply
           </button>
@@ -93,11 +94,11 @@ export default function JsonEditor() {
           <button
             onClick={saveBrand}
             disabled={!isDirty || loading}
-            className={`px-4 py-2 rounded-md text-sm font-medium
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
               ${
                 isDirty
-                  ? "bg-emerald-500 text-black"
-                  : "bg-gray-800 text-gray-500"
+                  ? "bg-emerald-500 text-black hover:bg-emerald-600"
+                  : "bg-gray-800 text-gray-500 cursor-not-allowed"
               }`}
           >
             {loading ? "Saving…" : "Save"}
@@ -107,7 +108,7 @@ export default function JsonEditor() {
 
       {/* Error */}
       {error && (
-        <div className="text-sm text-red-500">
+        <div className="text-sm text-red-500 bg-red-500/10 p-3 rounded-lg">
           {error}
         </div>
       )}
@@ -116,7 +117,7 @@ export default function JsonEditor() {
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="flex-1 w-full bg-black text-white font-mono text-sm p-4 rounded-lg resize-none outline-none"
+        className="flex-1 w-full bg-gray-900 text-white font-mono text-sm p-4 rounded-lg resize-none outline-none focus:ring-2 focus:ring-blue-500"
         spellCheck={false}
       />
     </div>

@@ -10,13 +10,21 @@ export default function TypographyEditor() {
   const { draft, saveBrand, isDirty, loading } =
     useBrandStore();
 
-  const styles = draft.brand.typography.textStyles;
+  // Add null checks
+  if (!draft?.brand?.typography) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-400">Typography configuration not available</p>
+      </div>
+    );
+  }
+
+  const styles = draft.brand.typography.textStyles || {};
   const keys = Object.keys(styles);
 
   const [activeStyle, setActiveStyle] =
     useState<string>("");
 
-  // ✅ FIXED: only desktop | mobile
   const [variant, setVariant] =
     useState<"desktop" | "mobile">("desktop");
 
@@ -31,7 +39,13 @@ export default function TypographyEditor() {
     }
   }, [keys, activeStyle]);
 
-  if (!activeStyle) return null;
+  if (!activeStyle) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-400">No typography styles defined</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full">
@@ -52,10 +66,9 @@ export default function TypographyEditor() {
             onClick={saveBrand}
             disabled={!isDirty || loading}
             className={`px-4 py-2 rounded-lg text-sm
-              ${
-                isDirty
-                  ? "bg-emerald-500 text-black"
-                  : "bg-gray-800 text-gray-500"
+              ${isDirty
+                ? "bg-emerald-500 text-black"
+                : "bg-gray-800 text-gray-500"
               }`}
           >
             {loading ? "Saving…" : "Save"}

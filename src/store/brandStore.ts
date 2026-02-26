@@ -4,21 +4,21 @@ import deepMerge from "../utils/deepMerge";
 import { saveBrand as saveBrandApi } from "../api/brand";
 
 interface BrandState {
-  brand: any;
-  draft: any;
+  brand: any; // The full API response { brand: {...}, config: {...} }
+  draft: any; // The editable config (draft.brand will contain the config)
   isDirty: boolean;
   loading: boolean;
 
   /** Load brand from backend */
-  setBrand: (brand: any) => void;
+  setBrand: (response: { brand: any; config: any }) => void;
 
   /** Patch-based updates (visual editors ONLY) */
   updateDraft: (path: (string | number)[], value: any) => void;
 
   /** Replace brand authoritatively (JSON editor ONLY) */
-  replaceDraftBrand: (brand: any) => void;
+  replaceDraftConfig: (config: any) => void;
 
-  /** Persist draft.brand to backend */
+  /** Persist draft config to backend */
   saveBrand: () => Promise<void>;
 }
 
@@ -30,19 +30,25 @@ export const useBrandStore = create<BrandState>((set, get) => ({
 
   /**
    * Initialize store from API
-   * Always clone → draft
+   * The API returns { brand: {...}, config: {...} }
+   * We store the full response in 'brand' and the config in 'draft'
    */
-  setBrand: (brand) =>
+  setBrand: (response) => {
+    console.log("Setting brand from response:", response);
     set({
-      brand,
-      draft: structuredClone(brand),
+      brand: response,
+      draft: {
+        brand: structuredClone(response.config) // This makes draft.brand point to the config
+      },
       isDirty: false,
       loading: false
-    }),
+    });
+  },
 
   /**
    * PATCH semantics
    * Used by visual editors ONLY
+   * Updates the config at draft.brand
    */
   updateDraft: (path, value) =>
     set((state) => ({
@@ -53,35 +59,45 @@ export const useBrandStore = create<BrandState>((set, get) => ({
   /**
    * AUTHORITATIVE replace
    * Used by JSON editor ONLY
+   * Replaces the entire config
    */
-  replaceDraftBrand: (brand) =>
+  replaceDraftConfig: (config) =>
     set((state) => ({
       draft: {
-        ...state.draft,
-        brand: structuredClone(brand)
+        brand: structuredClone(config)
       },
       isDirty: true
     })),
 
   /**
-   * Persist draft.brand → backend
+   * Persist draft.brand (the config) to backend
    */
   saveBrand: async () => {
-    const { draft } = get();
+    const { draft, brand } = get();
     if (!draft?.brand) return;
 
     set({ loading: true });
 
-    const saved = await saveBrandApi(
-      import.meta.env.VITE_API_KEY,
-      draft.brand
-    );
-
-    set({
-      brand: saved,
-      draft: structuredClone(saved),
-      isDirty: false,
-      loading: false
-    });
+    try {
+      // Save the config to backend
+      const saved = await saveBrandApi(draft.brand);
+      
+      // Update store with saved data
+      set({
+        brand: {
+          ...brand,
+          config: saved.config || saved // Handle different response formats
+        },
+        draft: {
+          brand: structuredClone(saved.config || saved)
+        },
+        isDirty: false,
+        loading: false
+      });
+    } catch (error) {
+      console.error("Failed to save brand:", error);
+      set({ loading: false });
+      throw error;
+    }
   }
 }));
