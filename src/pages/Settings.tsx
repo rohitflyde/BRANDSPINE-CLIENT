@@ -45,8 +45,8 @@ export default function Settings() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as SettingsTab)}
                                 className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                                    ? 'bg-emerald-900 text-white'
+                                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
                                     }`}
                             >
                                 <div className="flex items-center space-x-3">
@@ -60,7 +60,7 @@ export default function Settings() {
                 </nav>
 
                 {/* Current Brand Info */}
-                <div className="mt-8 pt-6 border-t border-gray-700">
+                {/* <div className="mt-8 pt-6 border-t border-gray-700">
                     <p className="text-xs text-gray-500 mb-2">ACTIVE BRAND</p>
                     <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded flex items-center justify-center">
@@ -73,7 +73,7 @@ export default function Settings() {
                             <p className="text-xs text-gray-400">ID: {brand?.id?.slice(-6) || '...'}</p>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* Settings Content */}
@@ -196,7 +196,7 @@ function ProfileSettings({ user, showSuccess, showError, setIsLoading }: any) {
 
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                     Save Changes
                 </button>
@@ -265,7 +265,7 @@ function TenantSettings({ user, showSuccess, showError, setIsLoading }: any) {
 
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                     Update Tenant
                 </button>
@@ -350,7 +350,7 @@ function SecuritySettings({ user, showSuccess, showError, setIsLoading }: any) {
 
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                     Change Password
                 </button>
@@ -392,7 +392,7 @@ function NotificationSettings({ showSuccess, showError }: any) {
                     </div>
                     <button
                         onClick={() => handleToggle('emailNotifications')}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.emailNotifications ? 'bg-blue-600' : 'bg-gray-600'
+                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.emailNotifications ? 'bg-emerald-500' : 'bg-gray-600'
                             }`}
                     >
                         <span
@@ -409,7 +409,7 @@ function NotificationSettings({ showSuccess, showError }: any) {
                     </div>
                     <button
                         onClick={() => handleToggle('apiKeyAlerts')}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.apiKeyAlerts ? 'bg-blue-600' : 'bg-gray-600'
+                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.apiKeyAlerts ? 'bg-emerald-500' : 'bg-gray-600'
                             }`}
                     >
                         <span
@@ -426,7 +426,7 @@ function NotificationSettings({ showSuccess, showError }: any) {
                     </div>
                     <button
                         onClick={() => handleToggle('brandUpdates')}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.brandUpdates ? 'bg-blue-600' : 'bg-gray-600'
+                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.brandUpdates ? 'bg-emerald-500' : 'bg-gray-600'
                             }`}
                     >
                         <span
@@ -443,7 +443,7 @@ function NotificationSettings({ showSuccess, showError }: any) {
                     </div>
                     <button
                         onClick={() => handleToggle('weeklyReports')}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.weeklyReports ? 'bg-blue-600' : 'bg-gray-600'
+                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.weeklyReports ? 'bg-emerald-500' : 'bg-gray-600'
                             }`}
                     >
                         <span

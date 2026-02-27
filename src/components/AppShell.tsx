@@ -196,7 +196,7 @@ export default function AppShell({
             />
           ) : (
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <span className="text-lg font-bold">B</span>
               </div>
               <div>
@@ -206,7 +206,7 @@ export default function AppShell({
             </div>
           )} */}
 
-          <BrandSwitcher/>
+          <BrandSwitcher />
         </div>
 
         {/* Navigation */}
@@ -216,7 +216,7 @@ export default function AppShell({
               key={section.id}
               onClick={() => onSectionChange(section.id)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeSection === section.id
-                ? "bg-blue-600 text-white"
+                ? "bg-emerald-900 text-white"
                 : "text-gray-400 hover:text-white hover:bg-gray-700"
                 }`}
             >
@@ -230,7 +230,7 @@ export default function AppShell({
         <div className="px-4 py-4 border-t border-gray-700">
           <button
             onClick={downloadCSS}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
+            className="w-full flex cursor-pointer items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-purple-600 text-white rounded-lg hover:from-green-700 hover:to-purple-700 transition-all transform hover:scale-105"
           >
             <Download size={18} />
             <span className="text-sm font-medium">Download CSS</span>
@@ -244,7 +244,7 @@ export default function AppShell({
         <div className="p-4 border-t border-gray-700 bg-gray-800/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 min-w-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
                 <User size={16} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
