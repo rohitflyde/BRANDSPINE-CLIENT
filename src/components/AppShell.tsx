@@ -12,9 +12,10 @@ import {
   LogOut,
   Download,
   User,
-  ChevronDown,
   Settings,
-  Layout
+  ChevronLeft,
+  ChevronRight,
+  Menu
 } from "lucide-react";
 import BrandSwitcher from "./BrandSwitcher";
 
@@ -26,16 +27,16 @@ interface AppShellProps {
   onLogout?: () => void;
 }
 
-
 const sections: { id: SectionId; label: string; icon: React.ReactNode }[] = [
   { id: "typography", label: "Typography", icon: <Type size={20} /> },
   { id: "colors", label: "Colors", icon: <Palette size={20} /> },
-  { id: "layout", label: "Layout", icon: <Layout size={20} /> },
+  { id: "layout", label: "Layout", icon: <LayoutIcon size={20} /> },
   { id: "identity", label: "Identity", icon: <Fingerprint size={20} /> },
   { id: "json", label: "JSON", icon: <FileJson size={20} /> },
   { id: "preview", label: "Preview", icon: <Eye size={20} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={20} /> }, // Add this
+  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
 ];
+
 export default function AppShell({
   children,
   activeSection,
@@ -43,6 +44,7 @@ export default function AppShell({
   userEmail,
   onLogout
 }: AppShellProps) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { draft } = useBrandStore();
 
@@ -182,103 +184,155 @@ export default function AppShell({
     URL.revokeObjectURL(url);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+      <div
+        className={`bg-gray-800 border-r border-gray-700 flex flex-col transition-all duration-300 ease-in-out relative ${isSidebarCollapsed ? 'w-20' : 'w-64'
+          }`}
+      >
+
+
         {/* Logo Area */}
-        <div className="p-2 border-b border-gray-700">
-          {/* {logo ? (
+        {/* <div className={`p-[30px] border-b border-gray-700 ${isSidebarCollapsed ? 'px-4' : ''}`}>
+          {logo ? (
             <img
               src={'https://ik.imagekit.io/p1zreiw3z/Brandspine/BRANDSPINE.png'}
               alt="Brand Logo"
-              className="max-h-10 w-auto object-contain"
+              className={`${isSidebarCollapsed ? 'w-8 h-8' : 'max-h-8'} w-auto object-contain mx-auto`}
             />
           ) : (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-2'}`}>
+              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span className="text-lg font-bold">B</span>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-white">Brand Builder</h2>
-                <p className="text-xs text-gray-400">Multi-tenant CMS</p>
-              </div>
+              {!isSidebarCollapsed && (
+                <div>
+                  <h2 className="text-lg font-bold text-white">Brand Builder</h2>
+                  <p className="text-xs text-gray-400">Multi-tenant CMS</p>
+                </div>
+              )}
             </div>
-          )} */}
+          )}
+        </div> */}
 
+        <div className="transition-all duration-300 border-b border-gray-700 py-2 px-2">
           <BrandSwitcher />
         </div>
 
+
+        
+
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-6 space-y-1 overflow-y-auto">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeSection === section.id
-                ? "bg-emerald-900 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-700"
-                }`}
+              className={`
+                w-full flex items-center rounded-lg transition-colors
+                ${isSidebarCollapsed ? 'justify-center px-2 py-3' : 'space-x-3 px-4 py-3'}
+                ${activeSection === section.id
+                  ? "bg-emerald-900 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700"
+                }
+              `}
+              title={isSidebarCollapsed ? section.label : ''}
             >
-              <span className="text-gray-400">{section.icon}</span>
-              <span className="text-sm font-medium">{section.label}</span>
+              <span className="text-gray-400 flex-shrink-0">{section.icon}</span>
+              {!isSidebarCollapsed && (
+                <span className="text-sm font-medium truncate">{section.label}</span>
+              )}
             </button>
           ))}
         </nav>
 
         {/* Download CSS Button */}
-        <div className="px-4 py-4 border-t border-gray-700">
+        <div className={`px-4 py-4 border-t border-gray-700 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           <button
             onClick={downloadCSS}
-            className="w-full flex cursor-pointer items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-purple-600 text-white rounded-lg hover:from-green-700 hover:to-purple-700 transition-all transform hover:scale-105"
+            className={`
+              w-full flex items-center justify-center space-x-2 px-4 py-2 
+              bg-gradient-to-r from-green-600 to-purple-600 text-white rounded-lg 
+              hover:from-green-700 hover:to-purple-700 transition-all transform hover:scale-105
+              ${isSidebarCollapsed ? 'px-2' : ''}
+            `}
+            title={isSidebarCollapsed ? 'Download CSS' : ''}
           >
-            <Download size={18} />
-            <span className="text-sm font-medium">Download CSS</span>
+            <Download size={18} className="flex-shrink-0" />
+            {!isSidebarCollapsed && <span className="text-sm font-medium">Download CSS</span>}
           </button>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            CSS variables for your brand
-          </p>
+          {!isSidebarCollapsed && (
+            <p className="text-xs text-gray-500 text-center mt-2">
+              CSS variables for your brand
+            </p>
+          )}
         </div>
 
         {/* User Info & Logout */}
-        <div className="p-4 border-t border-gray-700 bg-gray-800/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 min-w-0">
+        <div className={`p-4 border-t border-gray-700 bg-gray-800/50 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+          <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`flex items-center ${isSidebarCollapsed ? '' : 'space-x-3'} min-w-0`}>
               <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
                 <User size={16} className="text-white" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {userEmail || 'User'}
-                </p>
-                <p className="text-xs text-gray-400">Tenant Admin</p>
-              </div>
+              {!isSidebarCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">
+                    {userEmail || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-400">Tenant Admin</p>
+                </div>
+              )}
             </div>
+            {!isSidebarCollapsed && (
+              <button
+                onClick={onLogout}
+                className="p-2 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700 flex-shrink-0"
+                title="Sign Out"
+              >
+                <LogOut size={18} />
+              </button>
+            )}
+          </div>
+          {isSidebarCollapsed && (
             <button
               onClick={onLogout}
-              className="p-2 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700 flex-shrink-0"
+              className="mt-2 w-full p-2 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-700 flex justify-center"
               title="Sign Out"
             >
               <LogOut size={18} />
             </button>
-          </div>
+          )}
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Simple Header with just the section title */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-5">
+        {/* Header */}
+        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold">
-                {sections.find(s => s.id === activeSection)?.label || 'Editor'}
-              </h1>
-              {/* Add Brand Switcher here */}
-              {/* <div className="w-64">
-                <BrandSwitcher />
-              </div> */}
-            </div>
+
+            {/* LEFT: Sidebar Toggle */}
+            <button
+              onClick={toggleSidebar}
+              className="bg-gray-700 hover:bg-gray-600 rounded-md p-2 border border-gray-600 transition-colors"
+              title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isSidebarCollapsed ? (
+                <ChevronRight size={18} className="text-white" />
+              ) : (
+                <ChevronLeft size={18} className="text-white" />
+              )}
+            </button>
+
+            {/* RIGHT: Brand Switcher */}
+
+
           </div>
         </header>
 

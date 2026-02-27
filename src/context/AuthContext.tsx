@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import type { User, Brand, ActiveBrandResponse, ApiError } from '../types';
 import { authService } from '../services/auth.service';
 import { brandService } from '../services/brand.service';
@@ -10,12 +10,14 @@ interface AuthContextType {
     brand: ActiveBrandResponse | null;
     isLoading: boolean;
     error: string | null;
+    isFirstTimeUser: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (data: any) => Promise<void>;
     logout: () => void;
     refreshBrand: () => Promise<void>;
     switchBrand: (brandId: string) => Promise<void>;
     clearError: () => void;
+    completeOnboarding: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,12 +27,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [brand, setBrand] = useState<ActiveBrandResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
 
     useEffect(() => {
         checkAuth();
     }, []);
 
-    const checkAuth = async () => {
+    const checkAuth = useCallback(async () => {
         const token = localStorage.getItem('token');
         if (!token) {
             setIsLoading(false);
@@ -44,7 +47,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ]);
 
             setUser(authData.user);
-            if (brandData) {
+
+            if (!brandData) {
+                setIsFirstTimeUser(true);
+            } else {
+                const isDefault = brandData.brand.name === 'Default Brand' &&
+                    !brandData.config.meta?.customized;
+                setIsFirstTimeUser(isDefault);
                 setBrand(brandData);
             }
         } catch (error) {
@@ -53,7 +62,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []); // Add proper dependencies
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
 
     const login = async (email: string, password: string) => {
         try {
@@ -61,9 +74,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsLoading(true);
             const data = await authService.login({ email, password });
             setUser(data.user);
+
             if (data.brand) {
                 const brandData = await brandService.getActiveBrand();
                 setBrand(brandData);
+
+                // Check if first time
+                const isDefault = brandData.brand.name === 'Default Brand' &&
+                    !brandData.config.meta?.customized;
+                setIsFirstTimeUser(isDefault);
             }
         } catch (err) {
             const apiError = err as ApiError;
@@ -80,9 +99,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsLoading(true);
             const data = await authService.register(registerData);
             setUser(data.user);
+
+            // After registration, user should go to theme selection
+            setIsFirstTimeUser(true);
+
             if (data.brand) {
-                const brandData = await brandService.getActiveBrand();
-                setBrand(brandData);
+                setBrand({
+                    brand: data.brand,
+                    config: null // No config yet until theme is selected
+                });
             }
         } catch (err) {
             const apiError = err as ApiError;
@@ -93,23 +118,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // src/contexts/AuthContext.tsx - Fix the switchBrand function
-
     const switchBrand = async (brandId: string) => {
         try {
             setIsLoading(true);
-            console.log("🔄 Switching to brand:", brandId); // Add debug log
+            console.log("🔄 Switching to brand:", brandId);
 
-            // FIXED: Use backticks instead of single quotes
             const response = await api.post(`/brand/user/switch/${brandId}`);
-
             console.log("✅ Switch response:", response.data);
 
-            // Fetch the new active brand data
             const brandData = await brandService.getActiveBrand();
             setBrand(brandData);
-
-            // Trigger a page refresh by reloading the window
             window.location.reload();
         } catch (err) {
             console.error("❌ Switch brand error:", err);
@@ -125,9 +143,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             const brandData = await brandService.getActiveBrand();
             setBrand(brandData);
+
+            // Update first time status
+            if (brandData) {
+                const isDefault = brandData.brand.name === 'Default Brand' &&
+                    !brandData.config.meta?.customized;
+                setIsFirstTimeUser(isDefault);
+            }
         } catch (error) {
             console.error('Failed to refresh brand:', error);
         }
+    };
+
+    const completeOnboarding = () => {
+        setIsFirstTimeUser(false);
     };
 
     const logout = () => {
@@ -135,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setBrand(null);
         setError(null);
+        setIsFirstTimeUser(false);
         window.location.href = '/login';
     };
 
@@ -146,12 +176,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             brand,
             isLoading,
             error,
+            isFirstTimeUser,
             login,
             register,
             logout,
             refreshBrand,
             switchBrand,
-            clearError
+            clearError,
+            completeOnboarding
         }}>
             {children}
         </AuthContext.Provider>

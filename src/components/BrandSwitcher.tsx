@@ -8,6 +8,7 @@ interface Brand {
     id: string;
     name: string;
     slug: string;
+    publicId: string;
     isActive: boolean;
     description?: string;
     preview?: {
@@ -123,7 +124,7 @@ export default function BrandSwitcher() {
                             className="fixed inset-0 z-10"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="absolute left-0 right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-20">
+                        <div className="absolute left-0 right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-20">
                             <div className="p-2 max-h-96 overflow-y-auto ">
                                 {brands.map((brand) => (
 
@@ -144,7 +145,7 @@ export default function BrandSwitcher() {
                                             <div className="flex-shrink-0">
                                                 {brand.preview?.logo ? (
                                                     <img
-                                                        src={brand.preview.logo || 'https://placehold.co/40x40'}
+                                                        src={brand.preview.logo}
                                                         alt=""
                                                         className="w-8 h-8 rounded object-contain bg-white"
                                                     />
@@ -168,7 +169,7 @@ export default function BrandSwitcher() {
                                                 </div>
                                                 <div className="flex items-center space-x-2 text-xs opacity-75">
                                                     <Globe size={10} />
-                                                    <span className="truncate max-w-[100px]">{brand.slug}</span>
+                                                    <span className="truncate max-w-[100px]">{brand.publicId}</span>
                                                     <Key size={10} />
                                                     <span>{brand.apiKeysCount}</span>
                                                 </div>

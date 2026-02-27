@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute';
 import { Login } from './components/auth/Login';
 import { Register } from './components/auth/Register';
+import ThemeSelection from './pages/ThemeSelection';
 import Editor from './pages/Editor';
 
 function App() {
@@ -12,48 +13,36 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public Routes - only accessible when NOT logged in */}
-          <Route
-            path="/login"
-            element={
-              <PublicOnlyRoute>
-                <Login />
-              </PublicOnlyRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicOnlyRoute>
-                <Register />
-              </PublicOnlyRoute>
-            }
-          />
+          {/* Public Routes - order matters, put specific routes first */}
+          <Route path="/login" element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          } />
+          <Route path="/register" element={
+            <PublicOnlyRoute>
+              <Register />
+            </PublicOnlyRoute>
+          } />
 
-          {/* Protected Routes - only accessible when logged in */}
-          <Route
-            path="/editor"
-            element={
-              <ProtectedRoute>
-                <Editor />
-              </ProtectedRoute>
-            }
-          />
+          {/* Theme Selection - only accessible to first-time users */}
+          <Route path="/theme-selection" element={
+            <ProtectedRoute>
+              <ThemeSelection />
+            </ProtectedRoute>
+          } />
 
-          {/* Add more protected routes as needed */}
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <div>Settings Page (Coming Soon)</div>
-              </ProtectedRoute>
-            }
-          />
+          {/* Editor - main app */}
+          <Route path="/editor" element={
+            <ProtectedRoute>
+              <Editor />
+            </ProtectedRoute>
+          } />
 
-          {/* Redirect root based on auth status */}
+          {/* Root - redirect to editor (ProtectedRoute will handle first-time redirect) */}
           <Route path="/" element={<Navigate to="/editor" replace />} />
 
-          {/* 404 - Redirect to home */}
+          {/* Catch all - redirect to root */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

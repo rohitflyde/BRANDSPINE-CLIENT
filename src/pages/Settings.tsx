@@ -3,8 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ApiKeyManager from '../components/ApiKeyManager';
 import { User, Building, Shield, Bell, Key, ChevronRight } from 'lucide-react';
+import { Type } from 'lucide-react'; // Add Type icon
+import FontManager from '../components/FontManager';
 
-type SettingsTab = 'profile' | 'tenant' | 'api-keys' | 'security' | 'notifications';
+
+type SettingsTab = 'profile' | 'tenant' | 'api-keys' | 'security' | 'notifications' | 'fonts';
 
 export default function Settings() {
     const { user, brand } = useAuth();
@@ -16,6 +19,7 @@ export default function Settings() {
     const tabs = [
         { id: 'profile', label: 'Profile', icon: User },
         { id: 'tenant', label: 'Tenant Settings', icon: Building },
+        { id: 'fonts', label: 'Custom Fonts', icon: Type }, // Add this
         { id: 'api-keys', label: 'API Keys', icon: Key },
         { id: 'security', label: 'Security', icon: Shield },
         { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -133,6 +137,14 @@ export default function Settings() {
                             <NotificationSettings
                                 showSuccess={showSuccess}
                                 showError={showError}
+                            />
+                        )}
+
+                        {activeTab === 'fonts' && (
+                            <FontManager
+                                showSuccess={showSuccess}
+                                showError={showError}
+                                setIsLoading={setIsLoading}
                             />
                         )}
                     </div>

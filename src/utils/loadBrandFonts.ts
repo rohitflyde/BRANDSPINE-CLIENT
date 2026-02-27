@@ -74,32 +74,58 @@
 // }
 
 
-export function loadBrandFonts(fontFamilies: any) {
-  const styleId = "brand-font-faces";
-  if (document.getElementById(styleId)) return;
+// src/utils/loadBrandFonts.ts
+export const loadBrandFonts = async (fontFamilies: Record<string, any>) => {
+  if (!fontFamilies) return;
 
-  let css = "";
+  const promises = Object.entries(fontFamilies).map(async ([key, font]) => {
+    if (!font.sources || font.sources.length === 0) return;
 
-  Object.values(fontFamilies).forEach((font: any) => {
-    if (!font.sources) return;
+    // Create a FontFace for each source
+    const fontFaces = font.sources.map((source: any) => {
+      // Determine the format based on available URLs
+      let sourceUrl = '';
+      let format = '';
 
-    font.sources.forEach((src: any) => {
-      css += `
-@font-face {
-  font-family: '${font.family}';
-  src:
-    ${src.woff2 ? `url('${src.woff2}') format('woff2'),` : ""}
-    ${src.woff ? `url('${src.woff}') format('woff')` : ""};
-  font-weight: ${src.weight};
-  font-style: ${src.style || "normal"};
-  font-display: swap;
-}
-`;
-    });
+      if (source.woff2) {
+        sourceUrl = source.woff2;
+        format = 'woff2';
+      } else if (source.woff) {
+        sourceUrl = source.woff;
+        format = 'woff';
+      } else if (source.ttf) {
+        sourceUrl = source.ttf;
+        format = 'truetype';
+      }
+
+      if (!sourceUrl) return null;
+
+      const fontFace = new FontFace(
+        font.family,
+        `url(${sourceUrl}) format('${format}')`,
+        {
+          weight: source.weight.toString(),
+          style: source.style,
+          display: 'swap'
+        }
+      );
+
+      return fontFace;
+    }).filter(Boolean);
+
+    // Load all font faces
+    await Promise.all(
+      fontFaces.map(async (fontFace: FontFace) => {
+        try {
+          await fontFace.load();
+          document.fonts.add(fontFace);
+          console.log(`✅ Loaded font: ${font.family} (${fontFace.weight} ${fontFace.style})`);
+        } catch (error) {
+          console.error(`❌ Failed to load font: ${font.family}`, error);
+        }
+      })
+    );
   });
 
-  const style = document.createElement("style");
-  style.id = styleId;
-  style.innerHTML = css;
-  document.head.appendChild(style);
-}
+  await Promise.all(promises);
+};
